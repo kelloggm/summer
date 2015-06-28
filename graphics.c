@@ -23,14 +23,37 @@
 
 //constants
 #define xwBorder 2
-#define xxXwnd 200
-#define xyXwnd 200
-#define xwXwnd 100
-#define xhXwnd 100
+//#define xxXwnd 200
+//#define xyXwnd 200
+//#define xwXwnd 100
+//#define xhXwnd 100
+#define dxwBorder 100
+#define dxhBorder 100
+
+//error codes
+#define xerr 2
+#define xgcSuccess 1
+#define xgcFailure 0
 
 //globals
 Display *pxdsp;
 int xdpt, xscr;
+GC xgc;
+unsigned long xpxlWhite, xpxlBlack;
+
+
+int xgcFromXwndPxgc(Window xwnd, GC *pxgc){
+  XGCValues xgcv;
+  *pxgc = XCreateGC(pxdsp, xwnd, (unsigned long) 0, &xgcv);
+  if (*pxgc != 0){
+    XSetForeground(pxdsp, *pxgc, xpxlWhite);
+    XSetBackground(pxdsp, *pxgc, xpxlBlack);
+    return xgcSuccess;
+  }
+  else{
+    return xgcFailure;
+  }
+}
 
 Window xwndFromXxXyXwXh(int xx, int xy, int xw, int xh, int f){
   XSetWindowAttributes xswa;
@@ -71,18 +94,46 @@ Window xwndFromXxXyXwXh(int xx, int xy, int xw, int xh, int f){
   return xwnd;
 }
 
+// MJK: Because of the way the preprocessor works, these can't take
+// dxwBorder and dxhBorder as parameters
+
+int xwFromWxDxwBorder(int wx){
+  return (wx - (2 * dxwBorder));
+}
+
+int xhFromWyDxhBorder(int wy){
+  return (wy - (2 * dxhBorder));
+}
+
 int main(){
   Window xwnd;
+  int wx, wy;
+  int xxXwnd, xyXwnd, xwXwnd, xhXwnd;
 
   pxdsp = XOpenDisplay(NULL);
   if(pxdsp == NULL){
     fprintf(stderr, "Error: Given display cannot be opened");
-    return 2;
+    return xerr;
   }
   xscr = DefaultScreen(pxdsp);
   xdpt = DefaultDepth(pxdsp, xscr);
+  xpxlWhite = WhitePixel(pxdsp, xscr);
+  xpxlBlack = BlackPixel(pxdsp, xscr);
+
+  wx = DisplayWidth(pxdsp, xscr);
+  wy = DisplayHeight(pxdsp, xscr);
+
+  xwXwnd = xwFromWxDxwBorder(wx);
+  xhXwnd = xhFromWyDxhBorder(wy);
+  xxXwnd = dxwBorder;
+  xyXwnd = dxhBorder;
 
   xwnd = xwndFromXxXyXwXh(xxXwnd, xyXwnd, xwXwnd, xhXwnd, 0);
+
+  if (xgcFromXwndPxgc(xwnd, &xgc) == xgcFailure){
+    fprintf(stderr, "Error: X cannot create gc");
+    return xerr;
+  }
 
   // We don't have anything interesting to do.
   sleep(10);

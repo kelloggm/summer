@@ -1,0 +1,17 @@
+# @ Martin Kellogg, July 2015
+
+This is version 1 of the spec for the little C game I'm thinking about building this summer in my copious spare time. Yes, I'm aware that picking a language before actually deciding what the project is going to be typically ends poorly. No, I'm not going to change my mind - I intend to learn something, damn it, and that something is going to be C programming. Or else.
+
+I'm writing a spec because I've been reading too much of Joel Spolsky's blog, and he seems to think it's a good idea. He and I seem to agree about a lot of other things (Hungarian, anyone?), so I'm going to follow his advice on this, too.
+
+This is a functional spec - that means it says what a user should experience. I'm going to include some pieces of a technical spec, too, since I'm the only one working on this project for the moment. For instance, this project is going to be written in C, in the Unix stlye (i.e. the game itself is one module and the graphics another, which will have benefits when it comes time to port to Windows). Second, I'm going to use reasonably strict Hungarian notation throughout. Why, you ask? Well, because I think it will make me write fewer bugs into the program, especially because I'm writing in a language that lacks a lot of modern conveniences (such as, you know, user-defined types...). We'll see how it goes.
+
+So, what is it, anyway? A 2d platformer (sort of). The player controls a customizable robot, and navigates through terrain on a preset, destructible map. The goal is to get the highest score before dying. Everything is displayed in black and white. There are some number of enemies, but the primary goal is to find keys of some sort, which unlock additional customization options the first time they're found and afterwards just give points. Each key could appear in one of many locations. 
+
+High level architecture:
+     gameloop.c:
+	controls everything else. The game uber-mind. 
+		 * Has a copy of any data structure that needs to be passed between other modules.
+		 * Regularly calls the redrawing method of the graphics system (so  this module is touched when switching platforms)
+		 * transfers user input from the graphics system to the appropriate robot classes
+		 * keeps track of world state, such as score and what the world currently looks like, which is a giant 2d array of bits - one means draw black, zero means draw white (or vice versa). This is what the graphics system has to draw.
